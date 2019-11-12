@@ -3,7 +3,6 @@
 set -f
 
 CRONJOBS_FILE='crontab/cron'
-CRONJOB_COMMAND="curl -G http://www.google.com -o /home/mfriszky/Desktop/crontest.txt"
 not_null_re='^(\*\/[0-9])|([0-9])+$'
 
 
@@ -25,9 +24,14 @@ then
     DAY=true
 fi
 
-if [[ ! "$CRON_HOUR" =~ $not_null_re ]] && [[ $DAY = true ]]
+if [[ ! "$CRON_HOUR" =~ $not_null_re ]]
 then
+    if [[ $DAY = true ]]
+    then
     CRON_HOUR=0
+    HOUR=true
+    fi
+else
     HOUR=true
 fi
 
@@ -41,11 +45,12 @@ echo -e "\e[92mCRON SCHEDULE :" ${ARR[*]}
 echo -e "------------------------------------------------------------------------------------------------------\e[0m"
 # PUT YOUR CRONJOB HERE
 touch $CRONJOBS_FILE
-ls crontab
+
 cat >> $CRONJOBS_FILE << EOF 
 ${ARR[*]} $CRONJOB_COMMAND
 EOF
 crontab $CRONJOBS_FILE
 echo "Listing Crontab"
 echo "------------------------------------------------------------------------------------------------------"
-crontab -l
+ls crontab
+crond -f -L /dev/stdout
